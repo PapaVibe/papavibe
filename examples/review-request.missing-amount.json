@@ -1,0 +1,23 @@
+{
+  "task": {
+    "id": "task-missing-amount-001",
+    "intent": "Transfer USDC to approved treasury destination",
+    "allowedActionTypes": ["transfer"],
+    "allowedTargets": ["treasury-wallet"],
+    "policy": {
+      "allowUnlimitedApproval": false,
+      "requireKnownTarget": true
+    }
+  },
+  "proposedAction": {
+    "type": "transfer",
+    "token": "USDC",
+    "target": "treasury-wallet",
+    "rawDescription": "Transfer USDC to treasury without amount"
+  },
+  "context": {
+    "agentId": "demo-agent-1",
+    "sessionId": "demo-session-4",
+    "reason": "Treasury transfer"
+  }
+}

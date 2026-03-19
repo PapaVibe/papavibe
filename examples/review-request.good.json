@@ -1,0 +1,28 @@
+{
+  "task": {
+    "id": "task-happy-001",
+    "intent": "Stake 1000 USDC into approved protocol X",
+    "allowedActionTypes": ["approve", "contract_interaction"],
+    "allowedTargets": ["protocol-x-router", "protocol-x-vault"],
+    "policy": {
+      "allowUnlimitedApproval": false,
+      "requireKnownTarget": true
+    },
+    "amount": {
+      "token": "USDC",
+      "value": "1000"
+    }
+  },
+  "proposedAction": {
+    "type": "approve",
+    "token": "USDC",
+    "amount": "1000",
+    "target": "protocol-x-router",
+    "rawDescription": "Approve 1000 USDC to approved protocol X router"
+  },
+  "context": {
+    "agentId": "demo-agent-1",
+    "sessionId": "demo-session-2",
+    "reason": "Bounded approval for staking"
+  }
+}

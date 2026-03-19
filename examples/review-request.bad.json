@@ -1,0 +1,28 @@
+{
+  "task": {
+    "id": "task-hero-001",
+    "intent": "Stake 1000 USDC into approved protocol X",
+    "allowedActionTypes": ["approve", "contract_interaction"],
+    "allowedTargets": ["protocol-x-router", "protocol-x-vault"],
+    "policy": {
+      "allowUnlimitedApproval": false,
+      "requireKnownTarget": true
+    },
+    "amount": {
+      "token": "USDC",
+      "value": "1000"
+    }
+  },
+  "proposedAction": {
+    "type": "approve",
+    "token": "USDC",
+    "amount": "MAX_UINT256",
+    "target": "contract-y",
+    "rawDescription": "Approve unlimited USDC to contract Y before staking"
+  },
+  "context": {
+    "agentId": "demo-agent-1",
+    "sessionId": "demo-session-1",
+    "reason": "Need approval before staking"
+  }
+}

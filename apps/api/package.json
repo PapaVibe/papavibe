@@ -1,0 +1,14 @@
+{
+  "name": "@papavibe/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc --project tsconfig.json",
+    "check": "tsc --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "fastify": "^5.2.1"
+  }
+}
