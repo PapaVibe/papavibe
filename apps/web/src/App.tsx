@@ -44,84 +44,129 @@ type ReviewResponse = {
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8787";
 
-const badScenario: ReviewRequest = {
-  task: {
-    id: "task-hero-001",
-    intent: "Stake 1000 USDC into approved protocol X",
-    allowedActionTypes: ["approve", "contract_interaction"],
-    allowedTargets: ["protocol-x-router", "protocol-x-vault"],
-    policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
-    amount: { token: "USDC", value: "1000" },
+const scenarios: Record<string, ReviewRequest> = {
+  bad: {
+    task: {
+      id: "task-hero-001",
+      intent: "Stake 1000 USDC into approved protocol X",
+      allowedActionTypes: ["approve", "contract_interaction"],
+      allowedTargets: ["protocol-x-router", "protocol-x-vault"],
+      policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
+      amount: { token: "USDC", value: "1000" },
+    },
+    proposedAction: {
+      type: "approve",
+      token: "USDC",
+      amount: "MAX_UINT256",
+      target: "contract-y",
+      rawDescription: "Approve unlimited USDC to contract Y before staking",
+    },
+    context: { agentId: "demo-agent-1", sessionId: "demo-session-1", reason: "Need approval before staking" },
   },
-  proposedAction: {
-    type: "approve",
-    token: "USDC",
-    amount: "MAX_UINT256",
-    target: "contract-y",
-    rawDescription: "Approve unlimited USDC to contract Y before staking",
+  good: {
+    task: {
+      id: "task-happy-001",
+      intent: "Stake 1000 USDC into approved protocol X",
+      allowedActionTypes: ["approve", "contract_interaction"],
+      allowedTargets: ["protocol-x-router", "protocol-x-vault"],
+      policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
+      amount: { token: "USDC", value: "1000" },
+    },
+    proposedAction: {
+      type: "approve",
+      token: "USDC",
+      amount: "1000",
+      target: "protocol-x-router",
+      rawDescription: "Approve 1000 USDC to approved protocol X router",
+    },
+    context: { agentId: "demo-agent-1", sessionId: "demo-session-2", reason: "Bounded approval for staking" },
   },
-  context: {
-    agentId: "demo-agent-1",
-    sessionId: "demo-session-1",
-    reason: "Need approval before staking",
+  manual: {
+    task: {
+      id: "task-manual-001",
+      intent: "Transfer 500 USDC to approved treasury destination",
+      allowedActionTypes: ["transfer"],
+      allowedTargets: ["treasury-wallet", "ops-wallet"],
+      policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
+      amount: { token: "USDC", value: "500" },
+    },
+    proposedAction: {
+      type: "transfer",
+      token: "USDC",
+      amount: "500",
+      target: "ops-wallet",
+      rawDescription: "Transfer 500 USDC to secondary approved ops wallet",
+    },
+    context: { agentId: "demo-agent-1", sessionId: "demo-session-3", reason: "Treasury operations payment" },
+  },
+  missingAmount: {
+    task: {
+      id: "task-missing-amount-001",
+      intent: "Transfer USDC to approved treasury destination",
+      allowedActionTypes: ["transfer"],
+      allowedTargets: ["treasury-wallet"],
+      policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
+    },
+    proposedAction: {
+      type: "transfer",
+      token: "USDC",
+      target: "treasury-wallet",
+      rawDescription: "Transfer USDC to treasury without amount",
+    },
+    context: { agentId: "demo-agent-1", sessionId: "demo-session-4", reason: "Treasury transfer" },
+  },
+  actionMismatch: {
+    task: {
+      id: "task-action-mismatch-001",
+      intent: "Transfer 250 USDC to approved treasury destination",
+      allowedActionTypes: ["transfer"],
+      allowedTargets: ["treasury-wallet"],
+      policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
+      amount: { token: "USDC", value: "250" },
+    },
+    proposedAction: {
+      type: "approve",
+      token: "USDC",
+      amount: "250",
+      target: "treasury-wallet",
+      rawDescription: "Approve 250 USDC even though task only allows transfer",
+    },
+    context: { agentId: "demo-agent-1", sessionId: "demo-session-5", reason: "Unexpected approval" },
+  },
+  amountTooHigh: {
+    task: {
+      id: "task-amount-high-001",
+      intent: "Transfer 100 USDC to approved treasury destination",
+      allowedActionTypes: ["transfer"],
+      allowedTargets: ["treasury-wallet"],
+      policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
+      amount: { token: "USDC", value: "100" },
+    },
+    proposedAction: {
+      type: "transfer",
+      token: "USDC",
+      amount: "250",
+      target: "treasury-wallet",
+      rawDescription: "Transfer 250 USDC even though task only allows 100",
+    },
+    context: { agentId: "demo-agent-1", sessionId: "demo-session-6", reason: "Unexpected larger transfer" },
   },
 };
 
-const goodScenario: ReviewRequest = {
-  task: {
-    id: "task-happy-001",
-    intent: "Stake 1000 USDC into approved protocol X",
-    allowedActionTypes: ["approve", "contract_interaction"],
-    allowedTargets: ["protocol-x-router", "protocol-x-vault"],
-    policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
-    amount: { token: "USDC", value: "1000" },
-  },
-  proposedAction: {
-    type: "approve",
-    token: "USDC",
-    amount: "1000",
-    target: "protocol-x-router",
-    rawDescription: "Approve 1000 USDC to approved protocol X router",
-  },
-  context: {
-    agentId: "demo-agent-1",
-    sessionId: "demo-session-2",
-    reason: "Bounded approval for staking",
-  },
-};
-
-const manualScenario: ReviewRequest = {
-  task: {
-    id: "task-manual-001",
-    intent: "Transfer 500 USDC to approved treasury destination",
-    allowedActionTypes: ["transfer"],
-    allowedTargets: ["treasury-wallet", "ops-wallet"],
-    policy: { allowUnlimitedApproval: false, requireKnownTarget: true },
-    amount: { token: "USDC", value: "500" },
-  },
-  proposedAction: {
-    type: "transfer",
-    token: "USDC",
-    amount: "500",
-    target: "ops-wallet",
-    rawDescription: "Transfer 500 USDC to secondary approved ops wallet",
-  },
-  context: {
-    agentId: "demo-agent-1",
-    sessionId: "demo-session-3",
-    reason: "Treasury operations payment",
-  },
+const labels: Record<string, string> = {
+  bad: "Bad scenario",
+  good: "Good scenario",
+  manual: "Manual review scenario",
+  missingAmount: "Missing amount scenario",
+  actionMismatch: "Action mismatch scenario",
+  amountTooHigh: "Amount too high scenario",
 };
 
 export function App() {
-  const [scenario, setScenario] = useState<"bad" | "good" | "manual">("bad");
+  const [scenario, setScenario] = useState<keyof typeof scenarios>("bad");
   const [result, setResult] = useState<ReviewResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const current = useMemo(() => {
-    if (scenario === "good") return goodScenario;
-    if (scenario === "manual") return manualScenario;
-    return badScenario;
-  }, [scenario]);
+  const current = useMemo(() => scenarios[scenario], [scenario]);
 
   async function runReview() {
     setLoading(true);
@@ -137,14 +182,16 @@ export function App() {
   }
 
   return (
-    <main style={{ fontFamily: "Arial, sans-serif", maxWidth: 980, margin: "0 auto", padding: 24, color: "#111" }}>
+    <main style={{ fontFamily: "Arial, sans-serif", maxWidth: 1100, margin: "0 auto", padding: 24, color: "#111" }}>
       <h1 style={{ marginBottom: 4 }}>PapaVibe</h1>
       <p style={{ marginTop: 0, color: "#444" }}>Trust Gate for Agent-Controlled Funds</p>
 
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-        <button onClick={() => { setScenario("bad"); setResult(null); }} style={{ padding: "10px 14px" }}>Bad scenario</button>
-        <button onClick={() => { setScenario("good"); setResult(null); }} style={{ padding: "10px 14px" }}>Good scenario</button>
-        <button onClick={() => { setScenario("manual"); setResult(null); }} style={{ padding: "10px 14px" }}>Manual review scenario</button>
+        {Object.entries(labels).map(([key, label]) => (
+          <button key={key} onClick={() => { setScenario(key as keyof typeof scenarios); setResult(null); }} style={{ padding: "10px 14px" }}>
+            {label}
+          </button>
+        ))}
         <button onClick={runReview} disabled={loading} style={{ padding: "10px 14px", fontWeight: 700 }}>
           {loading ? "Running..." : "Run review"}
         </button>

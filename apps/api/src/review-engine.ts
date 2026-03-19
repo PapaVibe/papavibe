@@ -1,4 +1,5 @@
 import type { ReviewRequest, ReviewResponse } from "../../../packages/schemas/src/review";
+import { getTargetProfile } from "./target-registry";
 
 export function runReview(input: ReviewRequest): ReviewResponse {
   const { task, proposedAction } = input;
@@ -12,12 +13,22 @@ export function runReview(input: ReviewRequest): ReviewResponse {
   const isTargetAllowed = task.allowedTargets.includes(proposedAction.target);
   const isPrimaryTarget = proposedAction.target === task.allowedTargets[0];
   const isActionAllowed = task.allowedActionTypes.includes(proposedAction.type);
-  const isUnlimitedApproval =
-    proposedAction.type === "approve" &&
-    proposedAction.amount === "MAX_UINT256";
+  const isUnlimitedApproval = proposedAction.type === "approve" && proposedAction.amount === "MAX_UINT256";
   const expectedAmount = Number(task.amount?.value ?? 0);
   const proposedAmount = Number(proposedAction.amount ?? 0);
   const amountIsHigherThanExpected = expectedAmount > 0 && proposedAmount > expectedAmount;
+  const targetProfile = getTargetProfile(proposedAction.target);
+
+  signals.push({
+    type: "target_profile",
+    severity:
+      targetProfile.trustLevel === "trusted"
+        ? "low"
+        : targetProfile.trustLevel === "secondary"
+          ? "medium"
+          : "high",
+    message: `${targetProfile.label}: ${targetProfile.note}`,
+  });
 
   if (!isActionAllowed) {
     signals.push({
@@ -47,6 +58,16 @@ export function runReview(input: ReviewRequest): ReviewResponse {
     });
     verdict = "block";
     score += 25;
+  }
+
+  if (verdict === "approve" && targetProfile.trustLevel === "suspicious") {
+    signals.push({
+      type: "suspicious_target",
+      severity: "high",
+      message: "The target has a suspicious trust profile and should not be used for this action.",
+    });
+    verdict = "block";
+    score += 20;
   }
 
   if (isUnlimitedApproval && !task.policy.allowUnlimitedApproval) {
