@@ -6,7 +6,8 @@ $checks = @(
   @{ name = "good"; path = "$root\review-request.good.json"; expected = "approve" },
   @{ name = "manual"; path = "$root\review-request.manual.json"; expected = "manual_review" },
   @{ name = "missing_amount"; path = "$root\review-request.missing-amount.json"; expected = "block" },
-  @{ name = "action_mismatch"; path = "$root\review-request.action-mismatch.json"; expected = "block" }
+  @{ name = "action_mismatch"; path = "$root\review-request.action-mismatch.json"; expected = "block" },
+  @{ name = "amount_too_high"; path = "$root\review-request.amount-too-high.json"; expected = "block" }
 )
 
 $failed = $false

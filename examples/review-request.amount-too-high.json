@@ -1,0 +1,28 @@
+{
+  "task": {
+    "id": "task-amount-high-001",
+    "intent": "Transfer 100 USDC to approved treasury destination",
+    "allowedActionTypes": ["transfer"],
+    "allowedTargets": ["treasury-wallet"],
+    "policy": {
+      "allowUnlimitedApproval": false,
+      "requireKnownTarget": true
+    },
+    "amount": {
+      "token": "USDC",
+      "value": "100"
+    }
+  },
+  "proposedAction": {
+    "type": "transfer",
+    "token": "USDC",
+    "amount": "250",
+    "target": "treasury-wallet",
+    "rawDescription": "Transfer 250 USDC even though task only allows 100"
+  },
+  "context": {
+    "agentId": "demo-agent-1",
+    "sessionId": "demo-session-6",
+    "reason": "Unexpected larger transfer"
+  }
+}

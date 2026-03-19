@@ -32,6 +32,7 @@ Expected:
 - manual -> manual_review
 - missing_amount -> block
 - action_mismatch -> block
+- amount_too_high -> block
 
 ## 4. Run the host-agent demo
 

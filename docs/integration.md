@@ -150,6 +150,7 @@ Ready-made request files are available in `examples/`:
 - manual review when target is allowed but not primary
 - block when a money-related action is missing an explicit amount
 - block when the proposed action type is not allowed by the task
+- block when the proposed amount is higher than the amount allowed by the task
 
 
 - `review-request.bad.json` -> returns `block`
@@ -157,6 +158,7 @@ Ready-made request files are available in `examples/`:
 - `review-request.manual.json` -> returns `manual_review`
 - `review-request.missing-amount.json` -> returns `block`
 - `review-request.action-mismatch.json` -> returns `block`
+- `review-request.amount-too-high.json` -> returns `block`
 
 You can test them locally with:
 

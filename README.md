@@ -99,9 +99,17 @@ Use:
    - `scripts\demo-host-agent.cmd`
 8. Or use one helper:
    - `scripts\run-all.cmd`
+9. Full MVP verification (API + host-agent flow):
+   - `powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1`
 
 For the shortest developer path, read:
 - `docs\quickstart.md`
+
+For an honest product-state review, read:
+- `docs\sanity-pass.md`
+
+For the final MVP testing path, read:
+- `docs\mvp-ready.md`
 
 ## Demo scenarios
 

@@ -79,6 +79,20 @@ Block
 ### Why
 The proposed action type is not allowed by the task.
 
+## Sixth scenario: amount too high
+
+### Assigned task
+Transfer 100 USDC to approved treasury destination.
+
+### Proposed action
+Transfer 250 USDC to the correct target.
+
+### Expected verdict
+Block
+
+### Why
+The proposed amount is higher than the amount allowed by the task.
+
 ## Main demo path
 
 Use the host-agent flow as the primary demo, not only the browser UI.
@@ -94,10 +108,16 @@ Use the host-agent flow as the primary demo, not only the browser UI.
 
 ### Commands
 ```powershell
-node .\examples\host-agent-demo.js .\examples\review-request.bad.json
-node .\examples\host-agent-demo.js .\examples\review-request.good.json
-node .\examples\host-agent-demo.js .\examples\review-request.manual.json
+cmd /c .\scripts\demo-host-agent.cmd
 ```
+
+This runs all current host-agent demo scenarios:
+- bad
+- good
+- manual review
+- missing amount
+- action type mismatch
+- amount too high
 
 ## Demo sequence
 
