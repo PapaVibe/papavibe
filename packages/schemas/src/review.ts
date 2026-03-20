@@ -67,3 +67,9 @@ export interface ReviewResponse {
   recommendedNextStep: string;
   receipt: ReviewReceipt;
 }
+
+export interface ApiErrorResponse {
+  error: string;
+  message: string;
+  details?: string[];
+}

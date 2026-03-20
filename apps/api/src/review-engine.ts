@@ -18,6 +18,7 @@ export function runReview(input: ReviewRequest): ReviewResponse {
   const proposedAmount = Number(proposedAction.amount ?? 0);
   const amountIsHigherThanExpected = expectedAmount > 0 && proposedAmount > expectedAmount;
   const targetProfile = getTargetProfile(proposedAction.target);
+  const isKnownTarget = targetProfile.trustLevel !== "unknown";
 
   signals.push({
     type: "target_profile",
@@ -58,6 +59,16 @@ export function runReview(input: ReviewRequest): ReviewResponse {
     });
     verdict = "block";
     score += 25;
+  }
+
+  if (verdict === "approve" && task.policy.requireKnownTarget && !isKnownTarget) {
+    signals.push({
+      type: "unknown_target_profile",
+      severity: "high",
+      message: "Task policy requires a known target profile before execution can proceed.",
+    });
+    verdict = "block";
+    score += 20;
   }
 
   if (verdict === "approve" && targetProfile.trustLevel === "suspicious") {

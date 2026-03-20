@@ -66,19 +66,18 @@ PapaVibe detects the mismatch between task and execution path, flags the approva
 
 ## Main demo path
 
-The most important way to show PapaVibe is not just the browser UI, but the full host-agent flow:
+The canonical demo path is:
 
-1. a host agent receives a task
-2. the host agent proposes an onchain action
-3. the host agent sends that action to PapaVibe
-4. PapaVibe returns a verdict
-5. the host agent either executes, pauses, or aborts
+1. run the host-agent flow first
+2. show PapaVibe returning `approve`, `manual_review`, and `block`
+3. then open the browser UI to spotlight extra guardrails and malformed-request rejection at the API boundary
 
 Use:
 
 - `node .\examples\host-agent-demo.js .\examples\review-request.bad.json`
 - `node .\examples\host-agent-demo.js .\examples\review-request.good.json`
 - `node .\examples\host-agent-demo.js .\examples\review-request.manual.json`
+- `powershell -ExecutionPolicy Bypass -File .\examples\boundary-check.ps1`
 
 ## Local demo run
 
@@ -113,10 +112,18 @@ For the final MVP testing path, read:
 
 ## Demo scenarios
 
+Review verdict scenarios:
 - **Bad scenario** -> `BLOCK`
 - **Good scenario** -> `APPROVE`
 - **Manual review scenario** -> `MANUAL_REVIEW`
 - **Missing amount example** -> `BLOCK`
+- **Action mismatch example** -> `BLOCK`
+- **Amount too high example** -> `BLOCK`
+- **Unknown allowed target example** -> `BLOCK`
+
+API boundary rejection scenarios:
+- **Malformed amount payload** -> `400 invalid_review_request`
+- **Missing context fields** -> `400 invalid_review_request`
 
 ## Repository structure
 

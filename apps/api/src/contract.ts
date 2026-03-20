@@ -44,6 +44,11 @@ export function getContract() {
         reviewId: "string",
         timestamp: "string"
       }
+    },
+    errorResponse: {
+      error: "invalid_review_request | request_error | internal_error",
+      message: "string",
+      details: ["string"]
     }
   };
 }

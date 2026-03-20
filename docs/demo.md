@@ -95,7 +95,7 @@ The proposed amount is higher than the amount allowed by the task.
 
 ## Main demo path
 
-Use the host-agent flow as the primary demo, not only the browser UI.
+Use the host-agent flow as the canonical demo, then use the browser UI as the edge-case gallery.
 
 ### Recommended order
 1. show the host agent receiving a task
@@ -105,19 +105,23 @@ Use the host-agent flow as the primary demo, not only the browser UI.
    - execute
    - pause and ask human
    - abort execution
+5. show the browser UI for extra guardrails and malformed-request rejection
 
 ### Commands
 ```powershell
 cmd /c .\scripts\demo-host-agent.cmd
+powershell -ExecutionPolicy Bypass -File .\examples\boundary-check.ps1
 ```
 
-This runs all current host-agent demo scenarios:
+The host-agent demo runs the core verdict scenarios:
 - bad
 - good
 - manual review
 - missing amount
 - action type mismatch
 - amount too high
+
+The boundary check proves the API rejects malformed payloads with structured `400 invalid_review_request` errors.
 
 ## Demo sequence
 

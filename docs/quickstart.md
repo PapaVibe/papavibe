@@ -34,10 +34,18 @@ Expected:
 - action_mismatch -> block
 - amount_too_high -> block
 
-## 4. Run the host-agent demo
+## 4. Run the canonical demo path
+
+Start with the host-agent flow:
 
 ```powershell
 cmd /c .\scripts\demo-host-agent.cmd
+```
+
+Then prove the API boundary rejects malformed payloads:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\examples\boundary-check.ps1
 ```
 
 ## 5. Open the browser demo
@@ -46,10 +54,15 @@ Open:
 
 - `http://localhost:5173/`
 
-Then click:
+Then click through these in order:
 - `Bad scenario` -> `Run review`
 - `Good scenario` -> `Run review`
-- `Manual review scenario` -> `Run review`
+- `Manual review` -> `Run review`
+- `Unknown allowed target` -> `Run review`
+- `Malformed amount payload` -> `Run review`
+- `Missing context fields` -> `Run review`
+
+This gives judges and developers one clean path: host-agent verdicts first, UI edge cases second, malformed-input rejection last.
 
 ## 6. Try direct integration
 

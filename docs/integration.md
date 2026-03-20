@@ -9,10 +9,9 @@ The agent sends:
 - the action it wants to take
 - basic context
 
-PapaVibe returns:
-- approve
-- manual_review
-- block
+PapaVibe returns either:
+- a review verdict (`approve`, `manual_review`, `block`) for well-formed requests
+- or a structured API error for malformed requests at the boundary
 
 ## When to call PapaVibe
 
@@ -112,6 +111,19 @@ Use it to see the currently available service routes.
 }
 ```
 
+## Malformed-request response
+
+```json
+{
+  "error": "invalid_review_request",
+  "message": "Review request failed validation at the API boundary.",
+  "details": [
+    "proposedAction.amount must be a positive numeric string or MAX_UINT256 for approvals.",
+    "context.sessionId must be a non-empty string."
+  ]
+}
+```
+
 ## How an agent should react
 
 - `approve` -> execute the action
@@ -151,7 +163,8 @@ Ready-made request files are available in `examples/`:
 - block when a money-related action is missing an explicit amount
 - block when the proposed action type is not allowed by the task
 - block when the proposed amount is higher than the amount allowed by the task
-
+- block when a task requires a known target profile but the target has no registry entry
+- reject malformed payloads before trust review logic runs
 
 - `review-request.bad.json` -> returns `block`
 - `review-request.good.json` -> returns `approve`
@@ -159,6 +172,7 @@ Ready-made request files are available in `examples/`:
 - `review-request.missing-amount.json` -> returns `block`
 - `review-request.action-mismatch.json` -> returns `block`
 - `review-request.amount-too-high.json` -> returns `block`
+- `examples\boundary-check.ps1` -> returns structured `400 invalid_review_request` failures for malformed inputs
 
 You can test them locally with:
 

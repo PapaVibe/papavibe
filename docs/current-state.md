@@ -32,6 +32,13 @@ The product is intentionally **not** a wallet or transaction executor. The stron
 - `examples` - host-agent demo, stdin example, smoke check, service inspection
 - `scripts` - local start, demo, and MVP verification scripts
 
+## Block 2 hardening pass
+
+Completed in this pass:
+- browser demo now surfaces more negative and edge scenarios directly in the UI, including an unknown-target trust failure and malformed-request boundary failures
+- `/review` now validates malformed payloads at the API boundary and returns structured `400 invalid_review_request` responses instead of relying on implicit runtime behavior
+- canonical demo path is now explicitly documented as: host-agent flow first, browser edge-case gallery second, malformed-input rejection third
+
 ## What currently works
 
 ### API / trust gate
@@ -99,10 +106,9 @@ Result after fix:
 
 These are not baseline blockers, but they are still real gaps:
 - Review logic is still rule-based and narrow
-- Counterparty trust is still shallow (`allowedTargets` + target profile heuristics)
-- Browser demo only exposes part of the guardrail coverage; deeper cases are script-first
+- Counterparty trust is still shallow beyond the current registry + task-policy checks
 - No real wallet / execution interception yet
-- Malformed-input handling is still lighter than it should be for broader external-agent use
+- API validation is stronger, but still hand-rolled rather than generated from a formal schema / OpenAPI contract
 - Browser automation from the OpenClaw browser tool could not directly render the local Vite page in this session even though the local dev server itself returned `200 OK`; this looks like environment/tool connectivity rather than an app defect
 
 ## Last verified state
@@ -139,19 +145,19 @@ The main blocker that existed during this pass was the missing Node typings for 
 
 ## Top next tasks
 
-1. Expand the browser demo so all important guardrails are visible in the UI, not only via scripts.
-2. Harden malformed-input validation and error responses at the API boundary.
-3. Deepen target / counterparty trust signals beyond simple allowlists and primary-vs-secondary profiles.
-4. Add a single clean baseline script that starts API + web and clearly reports readiness for both.
+1. Deepen target / counterparty trust signals beyond the current registry + task-policy checks.
+2. Add a single clean baseline script that starts API + web and clearly reports readiness for both.
+3. Introduce a formal machine-readable API contract (for example JSON Schema/OpenAPI) so validation, docs, and examples stay in lockstep.
+4. Add a small automated test suite around review logic and boundary validation so future demo changes do not regress the guardrails.
 5. Keep docs and demo flow tight for submission / handoff so the strongest path stays obvious: host agent -> PapaVibe -> verdict -> execute/pause/abort.
 
 ## Practical recommendation for the next block
 
-Recommended next block: **BLOCK 2 = harden demo + API boundary**.
+Recommended next block: **BLOCK 3 = trust-depth + lightweight automated coverage**.
 
 That means:
-- expose the extra negative scenarios in the browser UI
-- add stricter request validation and clearer failures
-- document one canonical demo path for judges / new developers
+- expand target reputation / counterparty heuristics beyond the current registry model
+- add automated tests for both verdict logic and malformed-input rejection
+- optionally add one command that brings up the full judge/demo environment and confirms readiness
 
-That is the highest-leverage move now that the baseline runs again.
+That is the highest-leverage move now that BLOCK 2 hardening is in place.

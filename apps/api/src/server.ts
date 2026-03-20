@@ -16,6 +16,26 @@ app.addHook("onRequest", async (request, reply) => {
   }
 });
 
+app.setErrorHandler((error, _request, reply) => {
+  app.log.error(error);
+
+  if (reply.sent) {
+    return;
+  }
+
+  const fastifyError = error as { statusCode?: number; message?: string };
+  const statusCode = fastifyError.statusCode && fastifyError.statusCode >= 400 ? fastifyError.statusCode : 500;
+
+  reply.code(statusCode).send({
+    error: statusCode >= 500 ? "internal_error" : "request_error",
+    message:
+      statusCode >= 500
+        ? "PapaVibe hit an unexpected server error while reviewing the request."
+        : fastifyError.message ?? "Request failed.",
+    details: statusCode >= 500 ? ["Check API logs for the server-side failure context."] : undefined,
+  });
+});
+
 app.get("/health", async () => ({ ok: true }));
 app.get("/status", async () => getStatus());
 app.get("/contract", async () => getContract());
