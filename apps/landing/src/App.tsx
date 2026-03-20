@@ -4,235 +4,238 @@ const integrationSnippet = `const review = await fetch("http://127.0.0.1:8787/re
   body: JSON.stringify({ task, proposedAction, context })
 }).then((r) => r.json());
 
-if (review.verdict === "approve") {
-  // execute transaction
-} else if (review.verdict === "manual_review") {
-  // pause and ask a human
-} else {
-  // abort execution
-}`;
+if (review.verdict === "approve") execute();
+if (review.verdict === "manual_review") askHuman();
+if (review.verdict === "block") abort();`;
 
 const requestSnippet = `{
-  "task": {
-    "intent": "Stake 1000 USDC into approved protocol X",
-    "allowedActionTypes": ["approve", "contract_interaction"],
-    "allowedTargets": ["protocol-x-router", "protocol-x-vault"],
-    "policy": {
-      "allowUnlimitedApproval": false,
-      "requireKnownTarget": true
-    },
-    "amount": { "token": "USDC", "value": "1000" }
-  },
-  "proposedAction": {
-    "type": "approve",
-    "token": "USDC",
-    "amount": "MAX_UINT256",
-    "target": "contract-y"
-  },
-  "context": {
-    "agentId": "demo-agent-1",
-    "sessionId": "demo-session-1"
+  "task": "Stake 1000 USDC into protocol X",
+  "proposedAction": "Approve MAX_UINT256 to contract Y",
+  "policy": {
+    "allowUnlimitedApproval": false,
+    "requireKnownTarget": true
   }
 }`;
 
-const curlSnippet = `curl -X POST http://127.0.0.1:8787/review \\
-  -H "Content-Type: application/json" \\
-  --data @examples/review-request.good.json`;
+const roadmap = [
+  {
+    label: 'Now',
+    title: 'Trust review API',
+    points: [
+      'Task-action mismatch detection',
+      'Risk checks for amount, target, and approval scope',
+      'Simple verdicts: approve, manual review, block'
+    ]
+  },
+  {
+    label: 'Next',
+    title: 'Deeper integrations',
+    points: [
+      'Browser and host-agent guardrails',
+      'Stronger counterparty trust profiles',
+      'Cleaner policy tooling for teams'
+    ]
+  },
+  {
+    label: 'Later',
+    title: 'Trust layer for agent finance',
+    points: [
+      'Richer execution contexts and rules',
+      'Broader ecosystem integrations',
+      'Production-grade monitoring and controls'
+    ]
+  }
+];
+
+const steps = [
+  {
+    number: '01',
+    title: 'Define the task',
+    text: 'Your agent gets an intended action, limits, and approved targets.'
+  },
+  {
+    number: '02',
+    title: 'Review before execution',
+    text: 'PapaVibe compares the proposed action against the task and policy.'
+  },
+  {
+    number: '03',
+    title: 'Act on the verdict',
+    text: 'Execute, pause for review, or block before funds are exposed.'
+  }
+];
+
+const benefits = [
+  'Stops task drift before money moves',
+  'Makes agent behavior easier to trust and explain',
+  'Works as middleware instead of replacing your wallet stack',
+  'Returns machine-readable verdicts your system can obey instantly'
+];
 
 export function App() {
   return (
     <main className="page">
       <section className="hero shell">
-        <div className="hero-grid">
-          <div className="hero-copy">
+        <div className="hero-copy">
+          <div className="hero-topline">
             <p className="eyebrow">PapaVibe</p>
-            <h1>Trust review before an AI agent moves money</h1>
-            <p className="lead">
-              PapaVibe is trust middleware for agent-controlled funds. Before an agent executes a
-              money-related action, it sends the assigned task and the proposed action to PapaVibe.
-              PapaVibe returns a verdict before execution: approve, manual review, or block.
-            </p>
-            <div className="hero-points">
-              <span>Shows the trust decision before execution</span>
-              <span>Demonstrates real guardrails judges can understand</span>
-              <span>Gives other agents a copy-paste integration path</span>
-            </div>
-            <div className="actions">
-              <a className="button primary" href="https://github.com/PapaVibe/papavibe" target="_blank" rel="noreferrer">View GitHub</a>
-              <a className="button" href="https://github.com/PapaVibe/papavibe/blob/main/docs/submission-assets.md" target="_blank" rel="noreferrer">See Submission Assets</a>
-              <a className="button" href="#integrate">Integrate PapaVibe</a>
-            </div>
+            <span className="status-pill">Trust middleware for agent-controlled funds</span>
           </div>
 
-          <div className="hero-panel card glass">
-            <p className="panel-title">Execution loop</p>
-            <div className="flow-line flow-stack">
-              <span>Task assigned</span>
-              <span className="arrow">→</span>
-              <span>Agent proposes action</span>
-              <span className="arrow">→</span>
-              <span>PapaVibe reviews trust</span>
-              <span className="arrow">→</span>
-              <span>Execute / Pause / Abort</span>
-            </div>
-            <ul className="compact-list">
-              <li>Checks whether the action still matches the original task</li>
-              <li>Checks whether the action is too risky or too broad</li>
-              <li>Checks whether the target is trusted for that action and token</li>
-            </ul>
-            <div className="hero-callout">
-              <strong>Hero scenario:</strong> an agent is told to stake 1000 USDC, but tries an unlimited
-              approval to an unfamiliar contract. PapaVibe blocks it before funds are exposed.
-            </div>
+          <h1>Review AI money actions before execution.</h1>
+          <p className="lead">
+            PapaVibe sits between an agent task and the transaction it wants to send. It checks whether
+            the action still matches the task, fits policy, and looks safe enough to proceed.
+          </p>
+
+          <div className="hero-points">
+            <span>Task → review → verdict → execution</span>
+            <span>Built for agent-driven finance</span>
+            <span>Simple API, clear trust decisions</span>
+          </div>
+
+          <div className="actions">
+            <a className="button primary" href="#integrate">See integration</a>
+            <a className="button" href="https://github.com/PapaVibe/papavibe" target="_blank" rel="noreferrer">View GitHub</a>
+          </div>
+        </div>
+
+        <div className="hero-panel card">
+          <div className="hero-panel-head">
+            <p className="panel-title">Example review</p>
+            <span className="badge danger subtle">BLOCK</span>
+          </div>
+
+          <div className="signal-card">
+            <p className="signal-label">Task</p>
+            <strong>Stake 1000 USDC into protocol X</strong>
+          </div>
+
+          <div className="signal-card flagged">
+            <p className="signal-label">Proposed action</p>
+            <strong>Unlimited approval to unfamiliar contract Y</strong>
+          </div>
+
+          <div className="hero-callout">
+            PapaVibe catches the mismatch before execution, so the agent never reaches the risky step.
           </div>
         </div>
       </section>
 
-      <section className="grid two">
-        <article className="card section-card">
-          <p className="eyebrow">What it is</p>
-          <h2>A trust gate, not a wallet</h2>
+      <section className="section-block">
+        <div className="section-intro narrow">
+          <p className="eyebrow">What PapaVibe does</p>
+          <h2>A trust gate for AI-driven transactions.</h2>
           <p>
-            PapaVibe does not hold funds or replace execution. It sits between an agent’s planned
-            money movement and the final transaction, then decides whether that action should proceed.
+            PapaVibe is not a wallet and not an execution engine. It is the review layer that sits in
+            front of money-related actions and returns a verdict your system can enforce.
           </p>
-        </article>
-
-        <article className="card section-card">
-          <p className="eyebrow">Why it matters</p>
-          <h2>Agents can drift from the task they were given</h2>
-          <p>
-            Judges and product owners do not need to inspect calldata to understand the problem:
-            an autonomous agent can receive a reasonable task and still choose a dangerous execution path.
-            PapaVibe catches that drift before execution.
-          </p>
-        </article>
-      </section>
-
-      <section className="card section-card wide-card">
-        <div className="section-head">
-          <div>
-            <p className="eyebrow">Three trust checks</p>
-            <h2>What PapaVibe actually reviews</h2>
-          </div>
         </div>
+
         <div className="grid three">
-          <div className="mini-card">
-            <h3>Task alignment</h3>
-            <p>Does the proposed action still match the task the agent was assigned?</p>
-          </div>
-          <div className="mini-card">
-            <h3>Execution risk</h3>
-            <p>Is the action too broad, too large, malformed, or outside policy bounds?</p>
-          </div>
-          <div className="mini-card">
-            <h3>Counterparty trust</h3>
-            <p>Is the destination trusted for this token, this action type, and this economic intent?</p>
-          </div>
+          <article className="mini-card feature-card">
+            <h3>Checks task alignment</h3>
+            <p>Confirms the action still reflects the original user or system intent.</p>
+          </article>
+          <article className="mini-card feature-card">
+            <h3>Checks execution risk</h3>
+            <p>Flags broad approvals, oversized amounts, malformed requests, and policy breaks.</p>
+          </article>
+          <article className="mini-card feature-card">
+            <h3>Checks counterparty trust</h3>
+            <p>Looks at whether the destination is appropriate for that token, action, and task.</p>
+          </article>
         </div>
       </section>
 
-      <section className="grid two">
-        <article className="card section-card dark-card">
-          <p className="eyebrow">Verdicts</p>
-          <h2>Three simple outcomes another agent can act on immediately</h2>
-          <div className="badge-stack">
-            <div className="verdict-card approve">
-              <span className="badge success">APPROVE</span>
-              <p>Action fits the task and can proceed.</p>
-            </div>
-            <div className="verdict-card review">
-              <span className="badge warning">MANUAL REVIEW</span>
-              <p>Pause the flow and ask a human to confirm.</p>
-            </div>
-            <div className="verdict-card block">
-              <span className="badge danger">BLOCK</span>
-              <p>Do not execute the action.</p>
-            </div>
-          </div>
-        </article>
-
-        <article className="card section-card">
-          <p className="eyebrow">Scenarios checked in the MVP</p>
-          <h2>Focused, hackathon-disciplined coverage</h2>
-          <ul className="clean-list">
-            <li>Unlimited approval when the task requires bounded approval</li>
-            <li>Action type mismatch, like approve vs transfer</li>
-            <li>Amount higher than the task allows</li>
-            <li>Unknown or untrusted target profiles</li>
-            <li>Wrong token or wrong target category for the task intent</li>
-            <li>Malformed requests rejected at the API boundary</li>
-          </ul>
-        </article>
-      </section>
-
-      <section id="integrate" className="card section-card wide-card integrate-card">
-        <div className="section-head split-head">
-          <div>
-            <p className="eyebrow">Integrate PapaVibe</p>
-            <h2>Copy-paste path for another AI agent</h2>
-            <p className="section-copy">
-              If your agent already knows how to build a proposed action, integration is one extra step:
-              call <code>/review</code> before execution and obey the verdict.
-            </p>
-          </div>
-          <div className="stack-links">
-            <a className="button primary small" href="https://github.com/PapaVibe/papavibe/blob/main/docs/integration.md" target="_blank" rel="noreferrer">Open integration guide</a>
-            <a className="button small" href="https://github.com/PapaVibe/papavibe/blob/main/examples/review-from-stdin.js" target="_blank" rel="noreferrer">Use stdin example</a>
-          </div>
+      <section className="section-block">
+        <div className="section-intro">
+          <p className="eyebrow">How it works</p>
+          <h2>Simple enough to scan in seconds.</h2>
         </div>
 
-        <div className="grid two code-grid">
-          <div>
-            <p className="mini-label">1. Send task + proposed action</p>
-            <pre>{requestSnippet}</pre>
-          </div>
-          <div>
-            <p className="mini-label">2. Gate execution on the verdict</p>
-            <pre>{integrationSnippet}</pre>
-          </div>
-        </div>
-
-        <div className="grid two">
-          <div className="mini-card">
-            <h3>Fast local call</h3>
-            <pre>{curlSnippet}</pre>
-          </div>
-          <div className="mini-card">
-            <h3>Zero-friction path</h3>
-            <ul className="clean-list tight-list">
-              <li><code>GET /status</code> to confirm the service is alive</li>
-              <li><code>GET /contract</code> to inspect the request/response shape</li>
-              <li><code>POST /review</code> before every money-related action</li>
-              <li>Execute, pause, or abort based on the returned verdict</li>
-            </ul>
-          </div>
+        <div className="grid three steps-grid">
+          {steps.map((step) => (
+            <article key={step.number} className="card step-card">
+              <span className="step-number">{step.number}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      <section className="grid two">
-        <article className="card section-card">
-          <p className="eyebrow">Judge path</p>
-          <h2>One coherent demo story</h2>
-          <ul className="clean-list">
-            <li>Show the host agent receiving a task and proposing an action</li>
-            <li>Show PapaVibe returning approve, manual review, and block</li>
-            <li>Then show malformed payload rejection in the browser or boundary check</li>
-            <li>Close on the claim: trust is the execution gate, not a warning after the fact</li>
+      <section className="section-block split-section">
+        <article className="card section-card emphasis-card">
+          <p className="eyebrow">Benefits</p>
+          <h2>Designed for teams shipping autonomous flows.</h2>
+          <ul className="clean-list benefit-list">
+            {benefits.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </article>
 
-        <article className="card section-card">
-          <p className="eyebrow">Docs</p>
-          <h2>Start in the right place</h2>
-          <div className="link-stack">
-            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/submission-assets.md" target="_blank" rel="noreferrer">Submission assets: summary, pitch, and framing</a>
-            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/README.md" target="_blank" rel="noreferrer">README: product story + adoption path</a>
-            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/quickstart.md" target="_blank" rel="noreferrer">Quickstart: shortest local path</a>
-            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/demo.md" target="_blank" rel="noreferrer">Demo: judge-friendly walkthrough</a>
-            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/mvp-scope.md" target="_blank" rel="noreferrer">MVP scope: disciplined hackathon framing</a>
+        <article id="integrate" className="card section-card integrate-card">
+          <p className="eyebrow">Integrate / API</p>
+          <h2>Add one review call before execution.</h2>
+          <p className="section-copy">
+            If your agent can already prepare a proposed action, PapaVibe fits as a lightweight gate:
+            send the task and action to <code>/review</code>, then obey the verdict.
+          </p>
+
+          <div className="grid two code-grid compact-code-grid">
+            <div>
+              <p className="mini-label">Request shape</p>
+              <pre>{requestSnippet}</pre>
+            </div>
+            <div>
+              <p className="mini-label">Execution gate</p>
+              <pre>{integrationSnippet}</pre>
+            </div>
+          </div>
+
+          <div className="inline-links">
+            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/integration.md" target="_blank" rel="noreferrer">Integration guide</a>
+            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/quickstart.md" target="_blank" rel="noreferrer">Quickstart</a>
+            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/examples/review-from-stdin.js" target="_blank" rel="noreferrer">Example script</a>
           </div>
         </article>
+      </section>
+
+      <section className="section-block">
+        <div className="section-intro">
+          <p className="eyebrow">Roadmap</p>
+          <h2>Clear progression from MVP to broader trust infrastructure.</h2>
+        </div>
+
+        <div className="grid three roadmap-grid">
+          {roadmap.map((item) => (
+            <article key={item.label} className="card roadmap-card">
+              <span className="roadmap-label">{item.label}</span>
+              <h3>{item.title}</h3>
+              <ul className="clean-list tight-list">
+                {item.points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="card cta-card">
+        <div>
+          <p className="eyebrow">Ready to use PapaVibe?</p>
+          <h2>Add trust review where your agent decides to move money.</h2>
+          <p>
+            Start with the API, wire verdicts into your execution path, and give users a safer default.
+          </p>
+        </div>
+        <div className="actions compact-actions">
+          <a className="button primary" href="https://github.com/PapaVibe/papavibe" target="_blank" rel="noreferrer">Open repository</a>
+          <a className="button" href="https://github.com/PapaVibe/papavibe/blob/main/docs/demo.md" target="_blank" rel="noreferrer">View demo flow</a>
+        </div>
       </section>
     </main>
   );
