@@ -1,6 +1,30 @@
 import type { ReviewRequest, ReviewResponse } from "../../../packages/schemas/src/review";
 import { getTargetProfile } from "./target-registry";
 
+function classifyIntent(intent: string): "protocol_funding" | "treasury_payout" | "generic" {
+  const normalized = intent.toLowerCase();
+
+  if (
+    normalized.includes("stake") ||
+    normalized.includes("deposit") ||
+    normalized.includes("vault") ||
+    normalized.includes("protocol")
+  ) {
+    return "protocol_funding";
+  }
+
+  if (
+    normalized.includes("treasury") ||
+    normalized.includes("payout") ||
+    normalized.includes("pay") ||
+    normalized.includes("wallet")
+  ) {
+    return "treasury_payout";
+  }
+
+  return "generic";
+}
+
 export function runReview(input: ReviewRequest): ReviewResponse {
   const { task, proposedAction } = input;
 
@@ -19,6 +43,22 @@ export function runReview(input: ReviewRequest): ReviewResponse {
   const amountIsHigherThanExpected = expectedAmount > 0 && proposedAmount > expectedAmount;
   const targetProfile = getTargetProfile(proposedAction.target);
   const isKnownTarget = targetProfile.trustLevel !== "unknown";
+  const intentClass = classifyIntent(task.intent);
+  const taskToken = task.amount?.token;
+  const proposedToken = proposedAction.token;
+  const tokenMismatch = Boolean(taskToken && proposedToken && taskToken !== proposedToken);
+  const targetDisallowsAction = Boolean(
+    targetProfile.expectedActions && !targetProfile.expectedActions.includes(proposedAction.type)
+  );
+  const targetDisallowsToken = Boolean(
+    proposedToken && targetProfile.allowedTokens && !targetProfile.allowedTokens.includes(proposedToken)
+  );
+  const intentCategoryMismatch =
+    intentClass === "protocol_funding"
+      ? targetProfile.category === "treasury" || targetProfile.category === "operations"
+      : intentClass === "treasury_payout"
+        ? targetProfile.category === "protocol" || targetProfile.category === "vault"
+        : false;
 
   signals.push({
     type: "target_profile",
@@ -30,6 +70,24 @@ export function runReview(input: ReviewRequest): ReviewResponse {
           : "high",
     message: `${targetProfile.label}: ${targetProfile.note}`,
   });
+
+  if (targetProfile.counterpartyRisk === "medium") {
+    signals.push({
+      type: "counterparty_risk_medium",
+      severity: "medium",
+      message: "Counterparty is known but carries moderate operational trust risk.",
+    });
+    score += 5;
+  }
+
+  if (targetProfile.counterpartyRisk === "high") {
+    signals.push({
+      type: "counterparty_risk_high",
+      severity: "high",
+      message: "Counterparty has elevated trust risk and should be treated cautiously.",
+    });
+    score += 10;
+  }
 
   if (!isActionAllowed) {
     signals.push({
@@ -81,6 +139,46 @@ export function runReview(input: ReviewRequest): ReviewResponse {
     score += 20;
   }
 
+  if (verdict === "approve" && tokenMismatch) {
+    signals.push({
+      type: "task_token_mismatch",
+      severity: "high",
+      message: "Proposed token does not match the token expected by the assigned task.",
+    });
+    verdict = "block";
+    score += 20;
+  }
+
+  if (verdict === "approve" && targetDisallowsAction) {
+    signals.push({
+      type: "target_action_profile_mismatch",
+      severity: "high",
+      message: "This target is known, but it is not trusted for the proposed action type.",
+    });
+    verdict = "block";
+    score += 20;
+  }
+
+  if (verdict === "approve" && targetDisallowsToken) {
+    signals.push({
+      type: "target_token_profile_mismatch",
+      severity: "high",
+      message: "This target is not trusted for the proposed token in the current MVP registry.",
+    });
+    verdict = "block";
+    score += 20;
+  }
+
+  if (verdict === "approve" && intentCategoryMismatch) {
+    signals.push({
+      type: "intent_counterparty_mismatch",
+      severity: "high",
+      message: "Counterparty category does not match the economic intent of the task.",
+    });
+    verdict = "block";
+    score += 20;
+  }
+
   if (isUnlimitedApproval && !task.policy.allowUnlimitedApproval) {
     signals.push({
       type: "dangerous_approval_scope",
@@ -89,6 +187,16 @@ export function runReview(input: ReviewRequest): ReviewResponse {
     });
     verdict = "block";
     score += 30;
+  }
+
+  if (verdict === "approve" && isUnlimitedApproval && targetProfile.requiresBoundedApproval) {
+    signals.push({
+      type: "bounded_approval_required",
+      severity: "high",
+      message: "This counterparty may only receive bounded approvals in the MVP trust registry.",
+    });
+    verdict = "block";
+    score += 25;
   }
 
   if (verdict === "approve" && amountIsHigherThanExpected) {

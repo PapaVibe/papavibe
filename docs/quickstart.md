@@ -36,6 +36,14 @@ Expected:
 
 ## 4. Run the canonical demo path
 
+Fastest single-command judge path:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\judge-readiness.ps1
+```
+
+Or step through it manually.
+
 Start with the host-agent flow:
 
 ```powershell

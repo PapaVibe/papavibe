@@ -32,12 +32,13 @@ The product is intentionally **not** a wallet or transaction executor. The stron
 - `examples` - host-agent demo, stdin example, smoke check, service inspection
 - `scripts` - local start, demo, and MVP verification scripts
 
-## Block 2 hardening pass
+## Block 3 trust-depth + lightweight coverage pass
 
 Completed in this pass:
-- browser demo now surfaces more negative and edge scenarios directly in the UI, including an unknown-target trust failure and malformed-request boundary failures
-- `/review` now validates malformed payloads at the API boundary and returns structured `400 invalid_review_request` responses instead of relying on implicit runtime behavior
-- canonical demo path is now explicitly documented as: host-agent flow first, browser edge-case gallery second, malformed-input rejection third
+- added lightweight automated tests for review logic and API boundary validation using Node's built-in test runner
+- deepened trust heuristics beyond the prior static known-target check by adding counterparty risk tiers, target action/token fit, intent-to-counterparty category checks, and bounded-approval enforcement per target
+- added a single `scripts\judge-readiness.ps1` command that typechecks, builds, runs tests, checks API readiness, runs the host-agent path, and verifies malformed-request rejection
+- refreshed docs so the canonical judge/demo path and the new trust heuristics are explicit
 
 ## What currently works
 
@@ -52,6 +53,8 @@ Verified locally on 2026-03-20:
 
 ### Smoke / verification scripts
 Verified locally on 2026-03-20:
+- `npm run test` -> **passes**
+- `powershell -ExecutionPolicy Bypass -File .\scripts\judge-readiness.ps1` -> **passes**
 - `powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1` -> **passes**
 - `scripts\check.cmd` -> **passes**
 - `scripts\demo-host-agent.cmd` -> **passes**
@@ -105,8 +108,8 @@ Result after fix:
 ## What is still weak / not done
 
 These are not baseline blockers, but they are still real gaps:
-- Review logic is still rule-based and narrow
-- Counterparty trust is still shallow beyond the current registry + task-policy checks
+- Review logic is still rule-based and narrow even after adding deeper heuristics
+- Counterparty trust is better than before, but still registry-driven rather than informed by live onchain or reputation data
 - No real wallet / execution interception yet
 - API validation is stronger, but still hand-rolled rather than generated from a formal schema / OpenAPI contract
 - Browser automation from the OpenClaw browser tool could not directly render the local Vite page in this session even though the local dev server itself returned `200 OK`; this looks like environment/tool connectivity rather than an app defect
@@ -145,19 +148,20 @@ The main blocker that existed during this pass was the missing Node typings for 
 
 ## Top next tasks
 
-1. Deepen target / counterparty trust signals beyond the current registry + task-policy checks.
-2. Add a single clean baseline script that starts API + web and clearly reports readiness for both.
-3. Introduce a formal machine-readable API contract (for example JSON Schema/OpenAPI) so validation, docs, and examples stay in lockstep.
-4. Add a small automated test suite around review logic and boundary validation so future demo changes do not regress the guardrails.
+1. Add a formal machine-readable API contract (JSON Schema / OpenAPI) so validation, docs, and examples stay in lockstep.
+2. Expand the automated coverage from targeted unit/integration tests into a small scenario matrix shared with the demo fixtures.
+3. Add one or two stronger trust inputs that are still demo-friendly, such as simple chain-aware allowlists, spender/recipient classes, or static protocol metadata snapshots.
+4. Tighten the browser demo so the new trust signals are visible in the explanation panel, not just in API responses.
 5. Keep docs and demo flow tight for submission / handoff so the strongest path stays obvious: host agent -> PapaVibe -> verdict -> execute/pause/abort.
 
 ## Practical recommendation for the next block
 
-Recommended next block: **BLOCK 3 = trust-depth + lightweight automated coverage**.
+Recommended next block: **BLOCK 4 = contract-and-visibility hardening**.
 
 That means:
-- expand target reputation / counterparty heuristics beyond the current registry model
-- add automated tests for both verdict logic and malformed-input rejection
-- optionally add one command that brings up the full judge/demo environment and confirms readiness
+- introduce a formal API/schema source of truth
+- expose richer trust-signal explanations in the web demo
+- widen automated coverage with fixture-driven regression checks
+- optionally pull in one lightweight static metadata source to make trust look less purely local/hand-authored
 
-That is the highest-leverage move now that BLOCK 2 hardening is in place.
+That is the highest-leverage move now that BLOCK 3 trust-depth and lightweight coverage are in place.

@@ -96,9 +96,11 @@ Use:
    - `powershell -ExecutionPolicy Bypass -File .\examples\inspect-service.ps1`
 7. Run the host-agent demo path:
    - `scripts\demo-host-agent.cmd`
-8. Or use one helper:
+8. Judge/demo readiness path:
+   - `powershell -ExecutionPolicy Bypass -File .\scripts\judge-readiness.ps1`
+9. Or use one helper:
    - `scripts\run-all.cmd`
-9. Full MVP verification (API + host-agent flow):
+10. Full MVP verification (API + host-agent flow):
    - `powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1`
 
 For the shortest developer path, read:
@@ -120,6 +122,13 @@ Review verdict scenarios:
 - **Action mismatch example** -> `BLOCK`
 - **Amount too high example** -> `BLOCK`
 - **Unknown allowed target example** -> `BLOCK`
+
+The trust gate is now slightly deeper than a pure allowed-target check. In addition to task-policy and registry checks, PapaVibe now also evaluates:
+- counterparty risk tier (`low` / `medium` / `high`)
+- whether the target profile is trusted for the proposed action type
+- whether the target profile is trusted for the proposed token
+- whether the task's economic intent matches the target category (protocol/vault vs treasury/ops)
+- whether a target requires bounded approvals even when the task would otherwise allow unlimited approval
 
 API boundary rejection scenarios:
 - **Malformed amount payload** -> `400 invalid_review_request`

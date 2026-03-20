@@ -164,6 +164,10 @@ Ready-made request files are available in `examples/`:
 - block when the proposed action type is not allowed by the task
 - block when the proposed amount is higher than the amount allowed by the task
 - block when a task requires a known target profile but the target has no registry entry
+- block when the proposed token diverges from the task token
+- block when the target is known but not trusted for the proposed action type
+- block when the task intent points to protocol funding but the counterparty category looks like treasury/ops, or vice versa
+- block when a target requires bounded approvals even if the task otherwise allows unlimited approval
 - reject malformed payloads before trust review logic runs
 
 - `review-request.bad.json` -> returns `block`

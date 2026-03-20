@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc --project tsconfig.json",
-    "check": "tsc --noEmit --project tsconfig.json"
+    "check": "tsc --noEmit --project tsconfig.json",
+    "test": "node --import tsx --test src/review-engine.test.ts src/api-boundary.test.ts"
   },
   "dependencies": {
     "fastify": "^5.2.1"
