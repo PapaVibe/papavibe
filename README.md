@@ -94,6 +94,8 @@ Use:
    - `http://127.0.0.1:8787/status`
 6. Inspect service contract and endpoints:
    - `powershell -ExecutionPolicy Bypass -File .\examples\inspect-service.ps1`
+   - `npm run generate:contract`
+   - generated artifact: `docs\review-api-contract.json`
 7. Run the host-agent demo path:
    - `scripts\demo-host-agent.cmd`
 8. Judge/demo readiness path:

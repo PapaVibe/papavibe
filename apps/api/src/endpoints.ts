@@ -14,7 +14,7 @@ export function getEndpoints() {
       {
         method: "GET",
         path: "/contract",
-        purpose: "human-readable request/response contract"
+        purpose: "machine-readable contract bundle and OpenAPI source of truth"
       },
       {
         method: "POST",

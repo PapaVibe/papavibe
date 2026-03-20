@@ -137,3 +137,7 @@ The boundary check proves the API rejects malformed payloads with structured `40
 - the proposed action could drift from that task
 - PapaVibe catches that drift before funds move
 - trust is being used as an execution gate, not a passive warning
+- the browser demo now explains each decision in plain language through judge headline, why-it-matters copy, trust-focus chips, and three trust pillars:
+  - task alignment
+  - counterparty trust
+  - approval / execution safety

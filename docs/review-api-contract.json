@@ -1,0 +1,379 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PapaVibe Review API",
+    "version": "0.1.0",
+    "description": "Hackathon review API for checking whether an agent-proposed onchain action should be approved, manually reviewed, or blocked before execution."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8787"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Basic liveness check",
+        "responses": {
+          "200": {
+            "description": "Service is alive",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "Service metadata and supported capabilities",
+        "responses": {
+          "200": {
+            "description": "Current service status"
+          }
+        }
+      }
+    },
+    "/contract": {
+      "get": {
+        "summary": "Return the machine-readable contract bundle",
+        "responses": {
+          "200": {
+            "description": "Contract bundle"
+          }
+        }
+      }
+    },
+    "/endpoints": {
+      "get": {
+        "summary": "List human-oriented endpoint descriptions",
+        "responses": {
+          "200": {
+            "description": "Endpoint list"
+          }
+        }
+      }
+    },
+    "/review": {
+      "post": {
+        "summary": "Review a proposed action before execution",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review verdict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request failed validation at the API boundary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ReviewRequest": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://papavibe.local/schemas/review-request.json",
+        "title": "PapaVibeReviewRequest",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "task",
+          "proposedAction",
+          "context"
+        ],
+        "properties": {
+          "task": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "intent",
+              "allowedActionTypes",
+              "allowedTargets",
+              "policy"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "intent": {
+                "type": "string",
+                "minLength": 1
+              },
+              "allowedActionTypes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "transfer",
+                    "approve",
+                    "contract_interaction"
+                  ]
+                }
+              },
+              "allowedTargets": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "policy": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "allowUnlimitedApproval",
+                  "requireKnownTarget"
+                ],
+                "properties": {
+                  "allowUnlimitedApproval": {
+                    "type": "boolean"
+                  },
+                  "requireKnownTarget": {
+                    "type": "boolean"
+                  }
+                }
+              },
+              "amount": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "token",
+                  "value"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "value": {
+                    "type": "string",
+                    "pattern": "^\\d+(\\.\\d+)?$"
+                  }
+                }
+              }
+            }
+          },
+          "proposedAction": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type",
+              "target",
+              "rawDescription"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "transfer",
+                  "approve",
+                  "contract_interaction"
+                ]
+              },
+              "token": {
+                "type": "string",
+                "minLength": 1
+              },
+              "amount": {
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d+(\\.\\d+)?$"
+                  },
+                  {
+                    "const": "MAX_UINT256"
+                  }
+                ]
+              },
+              "target": {
+                "type": "string",
+                "minLength": 1
+              },
+              "rawDescription": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "context": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "agentId",
+              "sessionId"
+            ],
+            "properties": {
+              "agentId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sessionId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      },
+      "ReviewResponse": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://papavibe.local/schemas/review-response.json",
+        "title": "PapaVibeReviewResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "verdict",
+          "summary",
+          "score",
+          "signals",
+          "recommendedNextStep",
+          "receipt"
+        ],
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "manual_review",
+              "block"
+            ]
+          },
+          "summary": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "signals": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "type",
+                "severity",
+                "message"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "severity": {
+                  "type": "string",
+                  "enum": [
+                    "low",
+                    "medium",
+                    "high"
+                  ]
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "recommendedNextStep": {
+            "type": "string",
+            "enum": [
+              "execute_action",
+              "request_human_review",
+              "block_execution"
+            ]
+          },
+          "receipt": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "reviewId",
+              "timestamp"
+            ],
+            "properties": {
+              "reviewId": {
+                "type": "string"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "ApiErrorResponse": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://papavibe.local/schemas/api-error-response.json",
+        "title": "PapaVibeApiErrorResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error",
+          "message"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "invalid_review_request",
+              "request_error",
+              "internal_error"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}
