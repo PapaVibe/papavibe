@@ -1,17 +1,40 @@
 # PapaVibe Integration
 
-## What PapaVibe does
+## One-minute version
 
-PapaVibe reviews a money-related onchain action before an agent is allowed to execute it.
+PapaVibe is a trust gate for agent-controlled funds.
+
+Another AI agent integrates PapaVibe in one place:
+- after it has decided on a money-related action
+- before it executes that action
 
 The agent sends:
-- the task it was given
-- the action it wants to take
-- basic context
+- the task it was assigned
+- the proposed action it wants to take
+- basic execution context
 
-PapaVibe returns either:
-- a review verdict (`approve`, `manual_review`, `block`) for well-formed requests
-- or a structured API error for malformed requests at the boundary
+PapaVibe returns:
+- `approve`
+- `manual_review`
+- `block`
+
+Your agent then:
+- executes
+- pauses for a human
+- or aborts
+
+That is the whole product loop.
+
+## The simple adoption story
+
+If your agent can already produce a proposed transfer, approval, or contract interaction, you do **not** need to redesign the whole agent.
+
+You only need to add one review call:
+
+1. build the proposed action
+2. send it to `POST /review`
+3. read the verdict
+4. gate execution on that verdict
 
 ## When to call PapaVibe
 
@@ -24,11 +47,13 @@ Flow:
 4. PapaVibe returns verdict
 5. agent executes, pauses, or aborts
 
-## Review endpoint
+## Endpoints
+
+### Review endpoint
 
 `POST /review`
 
-## Service status endpoint
+### Service status endpoint
 
 `GET /status`
 
@@ -39,17 +64,57 @@ Use it to confirm that PapaVibe is running and to see:
 - available endpoints
 - available demo scenarios
 
-## Contract endpoint
+### Contract endpoint
 
 `GET /contract`
 
-Use it to see the request and response shape without opening the source code.
+Use it to inspect the request and response shape without opening the source code.
 
-## Endpoint index
+### Endpoint index
 
 `GET /endpoints`
 
 Use it to see the currently available service routes.
+
+## Copy-paste integration example
+
+```ts
+const review = await fetch("http://127.0.0.1:8787/review", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ task, proposedAction, context })
+}).then((r) => r.json());
+
+if (review.verdict === "approve") {
+  // execute transaction
+} else if (review.verdict === "manual_review") {
+  // stop and ask a human
+} else if (review.verdict === "block") {
+  // abort execution
+} else if (review.error) {
+  // malformed request or boundary failure
+}
+```
+
+## Fastest local test path
+
+### Option 1: send a prepared payload file
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\examples\call-review.ps1 .\examples\review-request.good.json
+```
+
+### Option 2: pipe JSON from stdin
+
+```powershell
+Get-Content .\examples\review-request.good.json -Raw | node .\examples\review-from-stdin.js
+```
+
+### Option 3: run the host-agent demo
+
+```powershell
+node .\examples\host-agent-demo.js .\examples\review-request.good.json
+```
 
 ## Example request
 
@@ -129,32 +194,9 @@ Use it to see the currently available service routes.
 - `approve` -> execute the action
 - `manual_review` -> pause and ask for human approval
 - `block` -> do not execute the action
+- `invalid_review_request` -> fix the payload and retry, do not execute blindly
 
-## Minimal integration example
-
-```ts
-const review = await fetch("http://127.0.0.1:8787/review", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ task, proposedAction, context })
-}).then((r) => r.json());
-
-if (review.verdict === "approve") {
-  // execute transaction
-}
-
-if (review.verdict === "manual_review") {
-  // stop and ask human
-}
-
-if (review.verdict === "block") {
-  // abort execution
-}
-```
-
-## Verified example payloads
-
-Ready-made request files are available in `examples/`:
+## What the current MVP checks
 
 ### Built-in guardrails currently demonstrated
 - block when target is outside task scope
@@ -169,6 +211,8 @@ Ready-made request files are available in `examples/`:
 - block when the task intent points to protocol funding but the counterparty category looks like treasury/ops, or vice versa
 - block when a target requires bounded approvals even if the task otherwise allows unlimited approval
 - reject malformed payloads before trust review logic runs
+
+## Ready-made example payloads
 
 - `review-request.bad.json` -> returns `block`
 - `review-request.good.json` -> returns `approve`
@@ -186,23 +230,21 @@ powershell -ExecutionPolicy Bypass -File .\examples\call-review.ps1 .\examples\r
 powershell -ExecutionPolicy Bypass -File .\examples\call-review.ps1 .\examples\review-request.manual.json
 ```
 
-## Minimal agent-side example
+## Minimal agent-side examples in the repo
 
-A ready-made JavaScript example is available at:
-
+### File-based example
 - `examples/agent-integration-example.js`
 
-It shows the exact pattern an agent should use:
+This shows the exact pattern an agent should use:
 1. load a task/action payload
 2. call PapaVibe `/review`
 3. read the verdict
 4. either execute, pause, or abort
 
-## Direct stdin integration
-
-If another agent wants to send payloads directly without writing a prepared file first, use:
-
+### Direct stdin integration
 - `examples/review-from-stdin.js`
+
+Use it when another agent wants to send payloads directly without writing a prepared file first.
 
 Example:
 
@@ -210,10 +252,7 @@ Example:
 Get-Content .\examples\review-request.good.json -Raw | node .\examples\review-from-stdin.js
 ```
 
-## Host-agent demo example
-
-A simple end-to-end host-agent simulation is available at:
-
+### Host-agent demo
 - `examples/host-agent-demo.js`
 
 Example:

@@ -1,171 +1,186 @@
 # PapaVibe
 
-**Trust Gate for Agent-Controlled Funds**
+**Trust review before an AI agent moves money**
 
-PapaVibe is a trust middleware for autonomous agents handling money-related onchain actions.
+PapaVibe is an API-first trust middleware for autonomous agents handling onchain funds.
 
-Before an agent can execute a sensitive action like a token transfer, approval, or contract interaction, PapaVibe reviews whether that action is trustworthy and aligned with the task the agent was actually assigned.
+It sits between:
+- the task an agent was assigned
+- the action the agent wants to take
+- the final execution step
 
-It then returns one of three decisions:
+Before execution, the agent sends PapaVibe:
+- the task
+- the proposed action
+- basic context
 
-- **Approve**
-- **Manual Review**
-- **Block**
-
-## Why this exists
-
-Autonomous agents are starting to control real onchain value, but there is still no reliable trust layer between:
-
-- the task the agent was given
-- the action the agent proposes
-- the execution of that action onchain
-
-PapaVibe closes that gap.
-
-## Core idea
-
-PapaVibe checks:
-
-- **task-action alignment**
-- **action risk**
-- **counterparty trust**
-
-before execution is allowed.
-
-## MVP
-
-The MVP supports three high-risk onchain action types:
-
-- `transfer`
-- `approve`
-- `contract_interaction`
-
-For each proposed action, PapaVibe reviews:
-
-- whether the action matches the assigned task
-- whether the action itself is risky
-- whether the target is trusted enough
-
-and returns:
-
+PapaVibe returns one of three verdicts:
 - `approve`
 - `manual_review`
 - `block`
 
-## Hero demo
+That gives another agent a simple loop to adopt immediately:
 
-Assigned task:
+**task -> proposed action -> PapaVibe review -> execute / pause / abort**
 
-> Stake 1000 USDC into approved protocol X
+## What problem PapaVibe solves
 
-Proposed action:
+AI agents can receive a legitimate money-related task and still choose a dangerous execution path.
 
-> Unlimited approve to an unfamiliar contract
+Example:
+- task: stake 1000 USDC into an approved protocol
+- proposed action: unlimited approval to an unfamiliar contract
 
-PapaVibe detects the mismatch between task and execution path, flags the approval as dangerous, and blocks execution before funds are exposed.
+PapaVibe catches that drift before funds move.
 
-## Main demo path
+## What PapaVibe checks
 
-The canonical demo path is:
+PapaVibe focuses on three trust questions:
 
-1. run the host-agent flow first
-2. show PapaVibe returning `approve`, `manual_review`, and `block`
-3. then open the browser UI to spotlight extra guardrails and malformed-request rejection at the API boundary
+1. **Task alignment**
+   - Does the proposed action still match the task the agent was assigned?
+2. **Execution risk**
+   - Is the action too broad, too large, malformed, or outside policy bounds?
+3. **Counterparty trust**
+   - Is the destination trusted for that action, token, and economic intent?
 
-Use:
+## MVP scope
 
-- `node .\examples\host-agent-demo.js .\examples\review-request.bad.json`
-- `node .\examples\host-agent-demo.js .\examples\review-request.good.json`
-- `node .\examples\host-agent-demo.js .\examples\review-request.manual.json`
-- `powershell -ExecutionPolicy Bypass -File .\examples\boundary-check.ps1`
+This hackathon MVP is intentionally narrow.
 
-## Local demo run
+Supported action types:
+- `transfer`
+- `approve`
+- `contract_interaction`
 
-1. Start backend:
-   - `scripts\start-api.cmd`
-2. Start frontend:
-   - `scripts\start-web.cmd`
-3. Open demo:
-   - `scripts\demo.cmd`
-   - or open `http://localhost:5173/`
-4. Run quick check:
-   - `scripts\check.cmd`
-5. Check service status:
-   - `http://127.0.0.1:8787/status`
-6. Inspect service contract and endpoints:
-   - `powershell -ExecutionPolicy Bypass -File .\examples\inspect-service.ps1`
-   - `npm run generate:contract`
-   - generated artifact: `docs\review-api-contract.json`
-7. Run the host-agent demo path:
-   - `scripts\demo-host-agent.cmd`
-8. Judge/demo readiness path:
-   - `powershell -ExecutionPolicy Bypass -File .\scripts\judge-readiness.ps1`
-9. Or use one helper:
-   - `scripts\run-all.cmd`
-10. Full MVP verification (API + host-agent flow):
-   - `powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1`
+Verdicts:
+- `approve`
+- `manual_review`
+- `block`
 
-For the shortest developer path, read:
-- `docs\quickstart.md`
+Guardrails currently demonstrated:
+- block target mismatch
+- block unlimited approval when policy forbids it
+- block amount above task allowance
+- block action type mismatch
+- block wrong token
+- block unknown or untrusted targets
+- block target category mismatch against task intent
+- reject malformed requests at the API boundary
+- send borderline but allowed flows to `manual_review`
 
-For an honest product-state review, read:
-- `docs\sanity-pass.md`
+For the disciplined MVP framing, read:
+- `docs/mvp-scope.md`
 
-For the final MVP testing path, read:
-- `docs\mvp-ready.md`
+## Why judges and product owners should care
 
-## Demo scenarios
+PapaVibe is not a passive warning layer.
 
-Review verdict scenarios:
-- **Bad scenario** -> `BLOCK`
-- **Good scenario** -> `APPROVE`
-- **Manual review scenario** -> `MANUAL_REVIEW`
-- **Missing amount example** -> `BLOCK`
-- **Action mismatch example** -> `BLOCK`
-- **Amount too high example** -> `BLOCK`
-- **Unknown allowed target example** -> `BLOCK`
+It is an **execution gate**.
 
-The trust gate is now slightly deeper than a pure allowed-target check. In addition to task-policy and registry checks, PapaVibe now also evaluates:
-- counterparty risk tier (`low` / `medium` / `high`)
-- whether the target profile is trusted for the proposed action type
-- whether the target profile is trusted for the proposed token
-- whether the task's economic intent matches the target category (protocol/vault vs treasury/ops)
-- whether a target requires bounded approvals even when the task would otherwise allow unlimited approval
+That means the product value is easy to understand without deep crypto or security context:
+- an agent gets a task
+- an agent proposes a money movement
+- PapaVibe reviews whether that move should be trusted
+- the system either proceeds, pauses for a human, or stops
 
-API boundary rejection scenarios:
-- **Malformed amount payload** -> `400 invalid_review_request`
-- **Missing context fields** -> `400 invalid_review_request`
+## Integrate PapaVibe
+
+If another AI agent already knows how to construct a proposed action, integration is one extra step:
+
+1. call `GET /status` to verify PapaVibe is alive
+2. optionally call `GET /contract` to inspect the schema
+3. call `POST /review` before every money-related execution
+4. obey the verdict
+
+Minimal integration example:
+
+```ts
+const review = await fetch("http://127.0.0.1:8787/review", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ task, proposedAction, context })
+}).then((r) => r.json());
+
+if (review.verdict === "approve") {
+  // execute transaction
+} else if (review.verdict === "manual_review") {
+  // pause and ask a human
+} else {
+  // abort execution
+}
+```
+
+Fast local examples:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\examples\call-review.ps1 .\examples\review-request.good.json
+Get-Content .\examples\review-request.good.json -Raw | node .\examples\review-from-stdin.js
+node .\examples\host-agent-demo.js .\examples\review-request.bad.json
+```
+
+The main integration guide is here:
+- `docs/integration.md`
+
+## Demo story
+
+The clean demo story for the hackathon is:
+
+1. show the host agent receiving a task
+2. show the proposed action
+3. show PapaVibe returning `approve`, `manual_review`, and `block`
+4. show the host agent executing, pausing, or aborting
+5. then show malformed payload rejection and extra guardrails in the browser or boundary check
+
+Hero scenario:
+- assigned task: stake 1000 USDC into approved protocol X
+- bad action: unlimited approval to unfamiliar contract Y
+- expected verdict: `block`
+
+Judge/demo docs:
+- `docs/demo.md`
+- `docs/quickstart.md`
+- `docs/mvp-ready.md`
+
+## Local run
+
+Backend:
+
+```powershell
+cmd /c .\scripts\start-api.cmd
+```
+
+Frontend demo app:
+
+```powershell
+cmd /c .\scripts\start-web.cmd
+```
+
+Landing page:
+
+```powershell
+npm run dev:landing
+```
+
+Core checks:
+
+```powershell
+cmd /c .\scripts\check.cmd
+powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1
+```
 
 ## Repository structure
 
-- `apps/web` - demo frontend
 - `apps/api` - review API
+- `apps/web` - browser demo frontend
+- `apps/landing` - landing page for judges and adopters
 - `packages/schemas` - shared request/response schemas
 - `packages/demo-data` - demo tasks, targets, scenarios
-- `docs/` - hackathon docs, logs, architecture, submission notes, and integration docs
-- `scripts/start-api.cmd` - start backend locally
-- `scripts/start-web.cmd` - start frontend locally
-- `examples/` - ready-made review payloads, a simple local call script, and a smoke check
+- `examples/` - ready-made request payloads and integration examples
+- `docs/` - product, demo, scope, and integration docs
 
-## Integration
+## Hackathon framing
 
-PapaVibe is meant to sit between an agent's planned action and final execution.
+Built for **The Synthesis** under the theme **Agents that trust**.
 
-Read `docs/integration.md` for:
-- what the agent sends
-- what PapaVibe returns
-- how the agent should react to the verdict
-- a minimal integration example
-- verified example payloads for `approve`, `block`, and `manual_review`
-
-## Hackathon notes
-
-This project is being built for **The Synthesis** under the theme **Agents that trust**.
-
-We are treating the following as hard constraints:
-
-- open source by default
-- working demo over concept-only scope
-- document human + agent collaboration
-- keep Ethereum/onchain context meaningful
-- keep the agent as a real participant in the workflow
+This repo is deliberately trying to feel like a product another agent can already adopt today, not just a concept demo.

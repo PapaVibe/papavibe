@@ -1,5 +1,16 @@
 # PapaVibe Quickstart
 
+## What you are starting
+
+PapaVibe is a trust gate that reviews an agent's money-related action before execution.
+
+The shortest useful local path is:
+1. start the API
+2. prove the service is alive
+3. run the core verdict checks
+4. run the host-agent demo
+5. optionally open the browser demo and landing page
+
 ## 1. Start the service
 
 Backend:
@@ -8,10 +19,16 @@ Backend:
 cmd /c .\scripts\start-api.cmd
 ```
 
-Frontend:
+Frontend demo app:
 
 ```powershell
 cmd /c .\scripts\start-web.cmd
+```
+
+Landing page:
+
+```powershell
+npm run dev:landing
 ```
 
 ## 2. Check that PapaVibe is alive
@@ -19,6 +36,12 @@ cmd /c .\scripts\start-web.cmd
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\examples\inspect-service.ps1
 ```
+
+You should see:
+- service status
+- endpoints
+- supported action types
+- supported verdicts
 
 ## 3. Run the core service check
 
@@ -70,10 +93,27 @@ Then click through these in order:
 - `Malformed amount payload` -> `Run review`
 - `Missing context fields` -> `Run review`
 
-This gives judges and developers one clean path: host-agent verdicts first, UI edge cases second, malformed-input rejection last.
+This gives judges and developers one coherent story:
+- the host agent gets a task
+- the host agent proposes an action
+- PapaVibe decides whether that action can proceed
+- the UI then shows edge cases and malformed-input rejection
 
 ## 6. Try direct integration
 
 ```powershell
 Get-Content .\examples\review-request.good.json -Raw | node .\examples\review-from-stdin.js
 ```
+
+## 7. Run the full MVP verification
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1
+```
+
+## Where to go next
+
+- `README.md` -> product story and adoption path
+- `docs/integration.md` -> copy-paste integration guide
+- `docs/demo.md` -> judge-facing walkthrough
+- `docs/mvp-scope.md` -> MVP boundaries and hackathon discipline

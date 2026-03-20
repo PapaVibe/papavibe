@@ -10,7 +10,7 @@ PapaVibe is an API-first trust middleware for autonomous agents handling agent-c
 
 ## Core MVP question
 
-Does the proposed onchain action actually match the task the agent was given?
+**Does the proposed onchain action still deserve trust given the task the agent was assigned?**
 
 ## In scope
 
@@ -33,15 +33,15 @@ Does the proposed onchain action actually match the task the agent was given?
 - verdict
 - reasoning summary
 - signal breakdown
-- optional lightweight trust receipt
+- lightweight trust receipt
 
 ## Hero use case
 
 Task:
-- Stake 1000 USDC into approved protocol X
+- stake 1000 USDC into approved protocol X
 
 Bad proposed action:
-- Unlimited approve to unfamiliar contract Y
+- unlimited approve to unfamiliar contract Y
 
 PapaVibe:
 - detects task mismatch
@@ -52,14 +52,20 @@ PapaVibe:
 ## Happy path
 
 Task:
-- Stake 1000 USDC into approved protocol X
+- stake 1000 USDC into approved protocol X
 
 Good proposed action:
-- Bounded approval to approved contract
-- Correct protocol interaction
+- bounded approval to approved contract
+- correct protocol interaction
 
 PapaVibe:
 - approves action
+
+## Product promise for the hackathon
+
+The MVP is trying to prove one thing clearly:
+
+**another agent can already plug PapaVibe into its execution flow and use it as a trust gate before moving money.**
 
 ## Out of scope
 
