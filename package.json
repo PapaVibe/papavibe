@@ -15,6 +15,7 @@
     "demo": "tsx scripts/run-demo.ts"
   },
   "devDependencies": {
+    "@types/node": "^24.5.2",
     "tsx": "^4.19.2",
     "typescript": "^5.8.2"
   }
