@@ -113,6 +113,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1
 
 ## Where to go next
 
+- `docs/submission-assets.md` -> short summary, pitch, and judging framing
 - `README.md` -> product story and adoption path
 - `docs/integration.md` -> copy-paste integration guide
 - `docs/demo.md` -> judge-facing walkthrough

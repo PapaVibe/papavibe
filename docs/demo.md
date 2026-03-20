@@ -15,6 +15,10 @@ It is a trust gate that sits between:
 
 That means the demo should feel like a product story, not just an API response gallery.
 
+## 30-second setup line
+
+"PapaVibe is trust middleware for agent-controlled funds. Before an autonomous agent executes a money-related action, it sends the assigned task and the proposed action to PapaVibe. PapaVibe returns one of three verdicts: approve, manual review, or block."
+
 ## Hero scenario
 
 ### Assigned task
@@ -141,6 +145,16 @@ Use language like this:
 - "Now the agent is proposing a specific money movement."
 - "PapaVibe checks whether that move still deserves trust."
 - "If trust holds, execution continues. If not, the flow pauses or stops."
+
+## 90-second live demo script
+
+1. Open with the setup line above.
+2. Run `scripts\demo-host-agent.cmd`.
+3. On the first scenario, say: "This is the hero case: the task is legitimate, but the execution path drifts into an unlimited approval to an unfamiliar contract. PapaVibe blocks it before funds move."
+4. On the approved scenario, say: "This proves PapaVibe is not just blocking everything. When the action stays inside the task envelope, execution can continue."
+5. On the manual-review scenario, say: "Not every questionable action is malicious. PapaVibe can pause ambiguous flows for a human instead of hard-blocking them."
+6. Run `examples\boundary-check.ps1`.
+7. Close with: "So PapaVibe is not a dashboard after the fact. It is the trust decision before execution."
 
 ## What judges should understand
 

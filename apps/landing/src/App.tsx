@@ -48,18 +48,18 @@ export function App() {
             <p className="eyebrow">PapaVibe</p>
             <h1>Trust review before an AI agent moves money</h1>
             <p className="lead">
-              PapaVibe is an API-first trust middleware for agent-controlled funds. An agent sends the
-              task it was assigned and the action it wants to take. PapaVibe returns a verdict before
-              execution: approve, manual review, or block.
+              PapaVibe is trust middleware for agent-controlled funds. Before an agent executes a
+              money-related action, it sends the assigned task and the proposed action to PapaVibe.
+              PapaVibe returns a verdict before execution: approve, manual review, or block.
             </p>
             <div className="hero-points">
-              <span>Explains the product in plain English</span>
-              <span>Shows real guardrails judges can understand</span>
+              <span>Shows the trust decision before execution</span>
+              <span>Demonstrates real guardrails judges can understand</span>
               <span>Gives other agents a copy-paste integration path</span>
             </div>
             <div className="actions">
               <a className="button primary" href="https://github.com/PapaVibe/papavibe" target="_blank" rel="noreferrer">View GitHub</a>
-              <a className="button" href="https://github.com/PapaVibe/papavibe/blob/main/docs/demo.md" target="_blank" rel="noreferrer">See Demo Flow</a>
+              <a className="button" href="https://github.com/PapaVibe/papavibe/blob/main/docs/submission-assets.md" target="_blank" rel="noreferrer">See Submission Assets</a>
               <a className="button" href="#integrate">Integrate PapaVibe</a>
             </div>
           </div>
@@ -218,6 +218,7 @@ export function App() {
             <li>Show the host agent receiving a task and proposing an action</li>
             <li>Show PapaVibe returning approve, manual review, and block</li>
             <li>Then show malformed payload rejection in the browser or boundary check</li>
+            <li>Close on the claim: trust is the execution gate, not a warning after the fact</li>
           </ul>
         </article>
 
@@ -225,6 +226,7 @@ export function App() {
           <p className="eyebrow">Docs</p>
           <h2>Start in the right place</h2>
           <div className="link-stack">
+            <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/submission-assets.md" target="_blank" rel="noreferrer">Submission assets: summary, pitch, and framing</a>
             <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/README.md" target="_blank" rel="noreferrer">README: product story + adoption path</a>
             <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/quickstart.md" target="_blank" rel="noreferrer">Quickstart: shortest local path</a>
             <a className="text-link" href="https://github.com/PapaVibe/papavibe/blob/main/docs/demo.md" target="_blank" rel="noreferrer">Demo: judge-friendly walkthrough</a>

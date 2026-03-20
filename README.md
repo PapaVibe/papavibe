@@ -23,6 +23,14 @@ That gives another agent a simple loop to adopt immediately:
 
 **task -> proposed action -> PapaVibe review -> execute / pause / abort**
 
+## One-line submission summary
+
+PapaVibe helps autonomous agents move funds more safely by checking whether a proposed onchain action still deserves trust before execution.
+
+## Short pitch
+
+Autonomous agents can receive a valid task and still choose a dangerous execution path. PapaVibe is the trust gate in front of execution: it compares the assigned task with the exact action the agent wants to take, checks execution risk and counterparty trust, and returns a machine-readable verdict of `approve`, `manual_review`, or `block`. The result is simple for judges to understand and simple for another agent to integrate.
+
 ## What problem PapaVibe solves
 
 AI agents can receive a legitimate money-related task and still choose a dangerous execution path.
@@ -84,6 +92,15 @@ That means the product value is easy to understand without deep crypto or securi
 - PapaVibe reviews whether that move should be trusted
 - the system either proceeds, pauses for a human, or stops
 
+## Start here
+
+If you only have a few minutes, use this order:
+
+1. `docs/submission-assets.md` for the short pitch, summary, and judge-facing framing
+2. `docs/demo.md` for the live demo script and narration
+3. `docs/quickstart.md` for the fastest cold-start local path
+4. `docs/integration.md` for the copy-paste adoption flow
+
 ## Integrate PapaVibe
 
 If another AI agent already knows how to construct a proposed action, integration is one extra step:
@@ -138,6 +155,7 @@ Hero scenario:
 - expected verdict: `block`
 
 Judge/demo docs:
+- `docs/submission-assets.md`
 - `docs/demo.md`
 - `docs/quickstart.md`
 - `docs/mvp-ready.md`
@@ -167,6 +185,7 @@ Core checks:
 ```powershell
 cmd /c .\scripts\check.cmd
 powershell -ExecutionPolicy Bypass -File .\scripts\verify-mvp.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\judge-readiness.ps1
 ```
 
 ## Repository structure
